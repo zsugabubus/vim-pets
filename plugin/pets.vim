@@ -67,33 +67,41 @@ augroup vim_pets_snippets
 		\  ["([([{'\"]+)\<CR>", {m-> "\<CR>".join(reverse(split(substitute(m[1], '.', {n-> get({'(': ')', '[': ']', '{': '}'}, n[0], n[0])}, 'g'), '\zs')), '')."\<C-o>O"}],
 		\]
 
+	autocmd FileType html,xml let b:pets_snippets += [
+		\  ["\\<([a-zA-Z0-9:]+)[^>]*/@<!\\>[^>]*\<CR>", "\<CR></\\1>\<Esc>O"],
+		\  ["\\<([a-zA-Z0-9:]+)[^>]*>", ">\<Esc>a</\\1>\<C-g>U\<C-o>`["],
+		\  ["\\<([a-zA-Z0-9:]+)[^>]*\\>[^>]*<", "</\\1>"],
+		\  ["\\<([a-zA-Z0-9:]+)[^>]{-}\\ze\\s*/", " />"],
+		\]
+
 	autocmd FileType c,cpp let b:pets_snippets += [
-		\  ["^#@!.*<%(if|for|case|while)> ", " ("],
-		\  ["^#@!.*<%(if|for|case|while)>.{-}\\)\\ze ", {m-> empty(g:PetsUnclosedBrackets(winline())) ? " {\<CR>}\<C-O>O" : " "}],
-		\  ["%(\\}(\\s*))\\ze<(e%[ls])> ", 'else if ('],
-		\  ["%(\\}(\\s*))\\ze<(e%[ls])>(", 'else if('],
+		\  ["^#@!.*<%(if|for|while)> ", " ("],
+		\  ["^#@!.*<%(if|for|while)>.{-}\\)\\ze ", {m-> empty(g:PetsUnclosedBrackets(winline())) ? " {\<CR>}\<C-O>O" : " "}],
 		\  ["<for>[^;]+;(\\s?)[^;]+;", {m-> ";".m[1]}],
-		\  ["<for>\\s*\\((\\k+) ", ' = '],
 		\  ["<for>\\s*\\([^;]*;(\\s*)(\\k+)\\s*([<>])\\s*[^; \t]+\<Tab>", {m-> ';'.m[1].(m[3] == '<' ? '++' : '--').m[2].')'}],
 		\  ["<for>(\\s*)\\((\\k+)(\\s*)\\=\\s*(\\d+)\<Tab>", {m-> ';'.m[1][:0].m[2].m[3]."<>"[m[4] >=# 1].m[3]}],
 		\  ["\\ze#ifnh (\\k+)\<CR>", {m-> "#ifndef ".m[1]."\<CR>#define ".m[1]."\<CR>\<CR>\<CR>\<CR>#endif /* !".m[1]." */\<Up>\<Up>"}],
 		\  ["^#(\\s*)if.*\<CR>", "\<CR>#\\1endif\<C-O>O"],
 		\  ["^#(\\s*)endif.*\<CR>", "\<C-O>O#\\1e"],
-		\  ["^\\ze(\\s*)#(\\s*)%[include]<",  "\\1#\\2include <>\<Left>"],
-		\  ["^\\ze(\\s*)#(\\s*)%[include]\"", "\\1#\\2include \"\"\<Left>"],
+		\  ['^\ze(\s*)#(\s*)%[include]<',  "\\1#\\2include <>\<Left>"],
+		\  ['^\ze(\s*)#(\s*)%[include]"', "\\1#\\2include \"\"\<Left>"],
 		\  ["^\\ze#\\s*<(p%[ragma]|i%[fdef]|i%[fndef]|e%[lif]|e%[ndif]|u%[ndef]|d%[efine]|i%[nclude]|i%[mport]|e%[rro])> ", {m-> '#'.PetsCFormatPreprocessorDirective(matchstr('# pragma # if # ifdef # ifndef #elif #else # undef # define # include # import # error # endif ', '\v\C#\zs ?\V'.m[1].'\v.{-} '))}],
 		\  ["^\\ze#\\s*<(e%[lse])>\<CR>", {m-> '#'.PetsCFormatPreprocessorDirective('else')."\<CR>"}],
 		\  ["^#(\\s*)<ifn?%(def)?>\\s*\\S*\<CR>", "\<CR>#\\1endif\<C-O>O"],
-		\  ["^#@!.*%(\\}\\s*)@!\\ze<(e%[ls])> ", 'else '],
-		\  ["^#@!.*\\ze<else>  ", 'else if ('],
-		\  ["^#@!.*\\ze<e%[lse]> ?(", 'else if('],
-		\  ["^#@!.{-}%[}(\\s*)]\\ze<(e%[lse])>{", {m-> "else".m[1]."{\<CR>}\<C-O>O"}],
-		\  ["^#@!.*\\ze<(e%[lse])>\<CR>", "else\<CR>"],
-		\  ["^%(.{-}<for>.*)@!\\ze;", {m-> substitute(g:PetsUnclosedBrackets(winline()), '\m^$', ';', '')}],
-		\  ["^%(.{-}<for>.*)@!;\\ze;", "\<CR>"],
-		\  ["^\\s*\\zes%[truct]\\s+(\\k+) ", "struct \\1 {\<CR>};\<C-O>O"],
+		\  ['^\s*\zei(', {m-> 'if'.(search('\v^\s*if( +)?\(', 'bnpw') ==# 1 ? '' : ' ').'('}],
+		\  ['^\s*<case>.+:\s*\ze{', {m-> "\<CR>\<C-D>{\<CR>}\<CR>\<C-T>break;\<CR>\<C-O>2k\<C-O>O"}],
+		\  ['^\s*\ze<(f%[or]|s%[witch]|w%[hile])>(', {m-> matchstr('for switch while', '\v<'.m[1].'\v.{-}>').(search('\v^\s*'.matchstr('for switch while', '\v<'.m[1].'\v.{-}>').'( +)?\(', 'bnpw') ==# 1 ? '' : ' ').'('}],
+		\  ['^\s*<(if|do|for|switch|while)>.*\S{', {m-> (search('\v^\s*'.m[1].'>.{-}( +)?\{$', 'bnpw') ==# 1 ? '' : ' ')."{\<CR>}\<C-O>O"}],
+		\  ['^\s*}? *\ze<(e%[lse])> ', {m-> 'else '}],
+		\  ['^\s*}? *\ze<(e%[lse])>(', {m-> 'else if'.(search('\v^\s*if( +)?\(', 'bnpw') ==# 1 ? '' : ' ').'('}],
+		\  ['^\s*\ze(} *)?<(e%[lse])>{', {m-> (!empty(m[1]) ? '}'.(search('\v^\s*}( +)?else>', 'bnpw') ==# 1 ? '' : ' ') : '')."else".(search('\v^\s*}? *else( +)?\{', 'bnpw') ==# 1 ? '' : ' ')."{\<CR>}\<C-O>O"}],
+		\  ["^\\s*}? *\\ze<(e%[lse])>\<CR>", "else\<CR>"],
+		\  ['^%(.{-}<for>.*)@!\ze;', {m-> substitute(g:PetsUnclosedBrackets(winline()), '\m^$', ';', '')}],
+		\  ['^%(.{-}<for>.*)@!;\\ze;', "\<CR>"],
+		\  ['^\s*\zes%[truct]\s+(\k+)\s*{', {m-> 'struct '.m[1].(search('\v^\s*struct\s+\k+( +)?\{', 'bnpw') ==# 1 ? '' : ' ')."{\<CR>};\<C-O>O"}],
 		\  ["^\\s*\\zes%[truct]\\s+(\\k+)\<CR>", "struct \\1\<CR>{\<CR>};\<C-O>O"],
-		\  ["^\\s*\\zes%[truct]\\s+(\\k+);", "struct \\1;\<C-O>o"],
+		\  ['^\s*\zes%[truct]\s+(\k+);', "struct \\1;\<C-O>o"],
+		\  ["^\\s*#(\\s*)define\\s*(\\k+).*[^\\\\]\<CR>", "\<CR>#\\1undef \\2\<Esc>j$"],
 		\]
 
 	autocmd FileType c,cpp,rust let b:pets_snippets += [
@@ -108,12 +116,12 @@ augroup vim_pets_snippets
 		\  ["^\\s*<%(fun|trait|struct|for|loop|match|%(<else> )?if)>.{-}[^{]\\zs\\s*\<CR>", "\<CR>{\<CR>}\<C-O>O"],
 		\  ["^\\s*<%(fun|trait|struct|for|loop|match|%(<else> )?if)>.{-}[^{]\\zs\\s*{", " {\<CR>}\<C-O>O"],
 		\  ["^.*<let>.*=", "= "],
-		\  ["=>", "> "],
+		\  ["\\=>", "> "],
 		\  ["\\ze<e%[lse]>{", "else {\<CR>}\<C-O>O"],
 		\  ["\\ze<e%[lse]>\<CR>", "else\<CR>{\<CR>}\<C-O>O"],
 		\]
 
-	autocmd FileType sh,zsh let b:pets_snippets += [
+	autocmd FileType sh,bash,zsh let b:pets_snippets += [
 		\  ["^\\s*<case>%(\\s+\\S+|.{-}\\ze\\s+<in>)\<CR>", " in\<CR>esac\<C-O>O"],
 		\  ["<then>\<CR>", "\<CR>fi\<C-O>O"],
 		\  ["<do>\<CR>", "\<CR>done\<C-O>O"],
@@ -136,10 +144,16 @@ augroup vim_pets_snippets
 		\  ["\\ze<%(f%[unction])>(.{-})%(<end>)@<!\<CR>", {m-> 'function'.m[1].g:PetsUnclosedBrackets(1)."\<CR>end\<C-O>O"}],
 		\  ["^\\s*\\ze<e%[ls]>\<CR>", "else\<CR>"],
 		\  ["^\\s*\\ze<e%(%[lsif]|%[lseif])> ", "elseif "],
+		\  ["^\\s*<(for|while)>.{-}\\ze\\s*%(<do>\\s*)@<!\<CR>", " do\<CR>end\<C-O>O"],
 		\]
 
-	autocmd FileType *tex let b:pets_snippets += [
+	autocmd FileType tex,plaintex let b:pets_snippets += [
 		\  ["^\\\\begin\\{([^}]+)\\}.*\<CR>", "\<CR>\\\\end{\\1}\<C-O>O"],
+		\  ["^\\\\%(sub)?section.*\<CR>", "\<CR>\<CR>"],
+		\]
+
+	autocmd FileType gdb let b:pets_snippets += [
+		\  ["^\\s*<%(define|doc%[ument]|if|while|commands?)>.*\<CR>", "\<CR>end\<C-O>O"]
 		\]
 
 augroup END
