@@ -75,8 +75,8 @@ augroup vim_pets_snippets
 		\]
 
 	autocmd FileType c,cpp let b:pets_snippets += [
-		\  ["^#@!.*<%(if|for|while)> ", " ("],
-		\  ["^#@!.*<%(if|for|while)>.{-}\\)\\ze ", {m-> empty(g:PetsUnclosedBrackets(winline())) ? " {\<CR>}\<C-O>O" : " "}],
+		\  ["^\\s*<%(if|for|while)> ", " ("],
+		\  ["^\\s*<%(if|for|while)>.{-}\\)\\ze ", {m-> empty(g:PetsUnclosedBrackets(winline())) ? " {\<CR>}\<C-O>O" : " "}],
 		\  ["<for>[^;]+;(\\s?)[^;]+;", {m-> ";".m[1]}],
 		\  ["<for>\\s*\\([^;]*;(\\s*)(\\k+)\\s*([<>])\\s*[^; \t]+\<Tab>", {m-> ';'.m[1].(m[3] == '<' ? '++' : '--').m[2].')'}],
 		\  ["<for>(\\s*)\\((\\k+)(\\s*)\\=\\s*(\\d+)\<Tab>", {m-> ';'.m[1][:0].m[2].m[3]."<>"[m[4] >=# 1].m[3]}],
@@ -154,6 +154,10 @@ augroup vim_pets_snippets
 
 	autocmd FileType gdb let b:pets_snippets += [
 		\  ["^\\s*<%(define|doc%[ument]|if|while|commands?)>.*\<CR>", "\<CR>end\<C-O>O"]
+		\]
+
+	autocmd FileType *roff let b:pets_snippets += [
+		\  ["^\.(UR|MT|EX).*\<CR>", {m-> "\<CR>.".m[1][0]."E\<C-O>O"}],
 		\]
 
 augroup END
