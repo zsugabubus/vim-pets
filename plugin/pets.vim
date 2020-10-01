@@ -105,7 +105,7 @@ augroup vim_pets_snippets
 		\]
 
 	autocmd FileType c,cpp,rust let b:pets_snippets += [
-		\  ["%(^|\\s){", "{\<CR>}\<C-O>O"],
+		\  ["%(^|\\w\\s*){", "{\<CR>}\<C-O>O"],
 		\  ["\\{\<CR>", "\<CR>}\<C-O>O"],
 		\  ["\\{ ", "  }\<Left>\<Left>"],
 		\  ["\\)\\s*{", "{\<CR>}\<C-O>O"],
@@ -156,8 +156,9 @@ augroup vim_pets_snippets
 		\  ["^\\s*<%(define|doc%[ument]|if|while|commands?)>.*\<CR>", "\<CR>end\<C-O>O"]
 		\]
 
-	autocmd FileType *roff let b:pets_snippets += [
-		\  ["^\.(UR|MT|EX).*\<CR>", {m-> "\<CR>.".m[1][0]."E\<C-O>O"}],
+	" Vim fold marks
+	autocmd FileType * let b:pets_snippets += [
+		\  ["^\\s*(\\S+\\s*).{-}\\{\\{\\{(\\d*).{-}(\\s*\\S+)\<CR>", "\<CR>\\1\\2}}}\\3\<C-O>O"],
 		\]
 
 augroup END
